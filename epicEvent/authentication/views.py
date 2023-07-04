@@ -1,8 +1,8 @@
-from django.shortcuts import render, HttpResponse, get_object_or_404
-from rest_framework import viewsets
+from rest_framework import generics
+from .serializers import RegisterSerializer
 
-class Register(viewsets.ModelViewSet):
-    pass
 
-class Login(viewsets.ModelViewSet):
-    pass
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+
+
