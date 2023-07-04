@@ -10,10 +10,10 @@ class CustomerSerializer(serializers.ModelSerializer):
 class ContractSerialier(serializers.ModelSerializer):
     class Meta:
         model = Contract
-        fields = ["contract_status", "amount", "customer", "date_created", "date_updated"]
+        fields = ["amount", "date_created", "date_updated"]
 
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ["contract", "date_created", "date_updated"]
+        fields = ["notes", "date_created", "date_updated"]
