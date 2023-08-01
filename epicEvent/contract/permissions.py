@@ -3,13 +3,16 @@ from authentication.models import User
 
 
 class Sales_management_Permission(permissions.BasePermission):
-    message = "Vous ne faite pas parti de l'équipe de management ou de l'équipe de vente"
+    message = "vous ne disposez pas des privilèges suffisants pour faire cette action"
 
     def has_object_permission(self, request, view, obj):
         user = User.objects.get(username=request.user)
-        print(user.autorisations)
-        if user.autorisations == "MA" or user.autorisations == "SA":
+        print(obj[0])
+        if user.autorisations == "MA":
             return obj
+        if user.autorisations == "SA" and request.user == obj[0].sales_contact:
+            return obj
+        
 
 
 class SupportPermission(permissions.BasePermission):
@@ -18,4 +21,5 @@ class SupportPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         user = User.objects.get(username=request.user)
         if user.autorisations == "SU":
-            return obj
+            if request.method == "GET" or request.method == "PUT":
+                return obj
