@@ -1,10 +1,9 @@
 from rest_framework import viewsets
 from .models import Customer, Contract, Event
 from .serializers import CustomerSerializer, ContractSerialier, EventSerializer
-from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from contract.permissions import Sales_management_Permission, SupportPermission
-
+from rest_framework.response import Response
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -27,6 +26,18 @@ class CustomerViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(self.request, serializer)
         serializer.save(sales_contact=self.request.user)
 
+    def update(self, request, *args, **kwargs):
+        customer = Customer.objects.filter(id=self.kwargs["pk"])
+        self.check_object_permissions(self.request, customer)
+        customer.update(
+            firstname=self.request.POST["firstname"],
+            lastname=self.request.POST["lastname"],
+            email=self.request.POST["email"],
+            mobile=self.request.POST["mobile"],
+            compagny_name=self.request.POST["compagny_name"],
+        )
+        serializer = CustomerSerializer(customer, many=True)
+        return Response(serializer.data)
 
 class ContractViewSet(viewsets.ModelViewSet):
     serializer_class = ContractSerialier
@@ -56,6 +67,16 @@ class ContractViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, serializer)
         serializer.save(sales_contact=self.request.user)
+    
+    def update(self, request, *args, **kwargs):
+        contract = Contract.objects.filter(id=self.kwargs["pk"])
+        self.check_object_permissions(self.request, contract)
+        contract.update(
+            amount=self.request.POST["amount"],
+            customer=self.request.POST["customer"]
+        )
+        serializer = ContractSerialier(contract, many=True)
+        return Response(serializer.data)
         
         
 class EventViewSet(viewsets.ModelViewSet):
@@ -81,4 +102,16 @@ class EventViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, serializer)
         serializer.save(support_contact=self.request.user)
-        
+    
+    def update(self, request, *args, **kwargs):
+        event = Event.objects.filter(id=self.kwargs["pk"])
+        self.check_object_permissions(self.request, event)
+        event.update(
+            notes=self.request.POST["notes"],
+            attendees=self.request.POST["attendees"],
+            customer=self.request.POST["customer"],
+            support_contact=self.request.POST["support_contact"],
+            event_status=self.request.POST["event_status"]
+        )
+        serializer = EventSerializer(event, many=True)
+        return Response(serializer.data)
