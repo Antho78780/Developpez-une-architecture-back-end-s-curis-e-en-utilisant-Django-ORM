@@ -2,13 +2,14 @@ from rest_framework import viewsets
 from .models import Customer, Contract, Event
 from .serializers import CustomerSerializer, ContractSerialier, EventSerializer
 from django.db.models import Q
-from contract.permissions import Sales_management_Permission, SupportPermission
+from contract.permissions import SalesManagementPermission, SupportsManagementPermission
 from rest_framework.response import Response
+from django.http import HttpResponse
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
-    permission_classes = [Sales_management_Permission]
+    permission_classes = [SalesManagementPermission]
     
     def get_queryset(self):
        if self.request.query_params:
@@ -21,7 +22,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
             )
            return queryset
 
-    
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, serializer)
         serializer.save(sales_contact=self.request.user)
@@ -38,10 +38,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
         )
         serializer = CustomerSerializer(customer, many=True)
         return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        customer = Customer.objects.filter(id=self.kwargs["pk"])
+        self.check_object_permissions(self.request, customer)
+        customer.delete()
+        return HttpResponse("Client supprimé")
+
 
 class ContractViewSet(viewsets.ModelViewSet):
     serializer_class = ContractSerialier
-    permission_classes = [Sales_management_Permission]
+    permission_classes = [SalesManagementPermission]
 
     def get_queryset(self):
         if self.request.query_params:
@@ -49,7 +56,6 @@ class ContractViewSet(viewsets.ModelViewSet):
             email = self.request.query_params.get('email')
             amount = self.request.query_params.get('amount')
             date_created = self.request.query_params.get('date_created')
-        
             contract = Contract.objects.filter(
                 (
                     Q(customer__lastname__iexact=lastname) | 
@@ -78,10 +84,16 @@ class ContractViewSet(viewsets.ModelViewSet):
         serializer = ContractSerialier(contract, many=True)
         return Response(serializer.data)
         
-        
+    def destroy(self, request, *args, **kwargs):
+        contract = Contract.objects.filter(id=self.kwargs["pk"])
+        self.check_object_permissions(self.request, contract)
+        contract.delete()
+        return HttpResponse("Contrat supprimé")
+    
+
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
-    permission_classes = [SupportPermission]
+    permission_classes = [SupportsManagementPermission]
 
     def get_queryset(self):
         if self.request.query_params:
@@ -115,3 +127,9 @@ class EventViewSet(viewsets.ModelViewSet):
         )
         serializer = EventSerializer(event, many=True)
         return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        event = Event.objects.filter(id=self.kwargs["pk"])
+        self.check_object_permissions(self.request, event)
+        event.delete()
+        return HttpResponse("Evénement supprimé") 
